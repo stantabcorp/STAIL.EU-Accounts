@@ -9,5 +9,7 @@ WORDPRESS - WIP
 XENFORO - WIP    
 VANILLA FORUM - WIP    
 PRESTASHOP - WIP   
+JAVA - WIP     
+ANDROID - WIP    
 
 Any idea of platforms ? Open an Issue
