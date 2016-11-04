@@ -1,7 +1,7 @@
 # STAIL.EU-Accounts
 The new way to have accounts
 
-Development Progress: 
+Development Progress:    
 PHP - TESTED [SUCCESS]     
 JS - NOT TESTED [??]   
 WINDOWS - WIP   
