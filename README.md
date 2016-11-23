@@ -3,13 +3,6 @@ The new way to have accounts
 
 Development Progress:    
 PHP - TESTED [SUCCESS]     
-JS - NOT TESTED [??]   
-WINDOWS - WIP   
-WORDPRESS - WIP    
-XENFORO - WIP    
-VANILLA FORUM - WIP    
-PRESTASHOP - WIP   
-JAVA - WIP     
-ANDROID - WIP    
+JS - NOT TESTED [??]    
 
 Any idea of platforms ? Open an Issue
