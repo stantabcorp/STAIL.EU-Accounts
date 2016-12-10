@@ -21,6 +21,89 @@
 		* @var string $error Should contain the last error
 		*/
 		public $error = "";
+		/**
+		* @var boolean $cache If the cache is activated or not
+		*/
+		public $cache = false;
+
+		/**
+		* __construct()
+		*
+		* The construct method
+		*
+		* @param boolean $cache If you want to use cache or not
+		*/
+		public function __construct($cache = false){
+			$this->cache = $cache;
+			if($cache){
+				if(!file_exists(".stail_cache")){
+					mkdir(".stail_cache");
+				}
+			}
+		}
+
+		/**
+		* setCache()
+		*
+		* This function set the cache
+		*
+		* @param string  $type 	 The type of data to save
+		* @param string	 $name 	 The name of the file
+		* @param string  $data 	 The data to save
+		*
+		* @return void
+		*/
+		private function setCache($type, $name, $data){
+			if(!file_exists(".stail_cache/".$type)){
+				mkdir(".stail_cache/".$type);
+			}
+			if(file_exists(".stail_cache/".$type."/".$name)){
+				$last = date("U", filemtime(".stail_cache/".$type."/".$name));
+				if(intval($last)+300 >= time()){
+					unlink(".stail_cache/".$type."/".$name);
+					file_put_contents(".stail_cache/".$type."/".$name, $data);
+				}
+			}else{
+				file_put_contents(".stail_cache/".$type."/".$name, $data);
+			}
+		}
+
+		/**
+		* getCache()
+		*
+		* This function get the cache
+		*
+		* @param string  $type 	 The type of data to save
+		* @param string	 $name 	 The name of the file
+		*
+		* @return string The saved data
+		*/
+		private function getCache($type, $name){
+			return file_get_contents(".stail_cache/".$type."/".$name);
+		}
+
+		/**
+		* isCached()
+		*
+		* This function check if a data is cached
+		*
+		* @param string  $type 	 The type of data to save
+		* @param string	 $name 	 The name of the file
+		*
+		* @return boolean If the data is cached or not (also if the cache has expired)
+		*/
+		private function isCached($type, $name){
+			if(file_exists(".stail_cache/".$type."/".$name)){
+				$last = date("U", filemtime(".stail_cache/".$type."/".$name));
+				if(intval($last)+300 >= time()){
+					return false;
+				}else{
+					return true;
+				}
+			}else{
+				return false;
+			}
+		}
 
 		/**
 		* sendRequest()
@@ -121,13 +204,29 @@
 		* @return string The user's UUID
 		*/
 		public function getUUID($user){
-			$rep = json_decode($this->sendRequest($this->urlbase."/api/uuid/get/".$user, array(), false));
-			if($rep->success){
-				$this->error = "";
-				return $rep->uuid;
+			if($this->cache){
+				if($this->isCached("username-uuid", $user)){
+					return $this->getCache("username-uuid", $user);
+				}else{
+					$rep = json_decode($this->sendRequest($this->urlbase."/api/uuid/get/".$user, array(), false));
+					if($rep->success){
+						$this->error = "";
+						$this->setCache("username-uuid", $user, $rep->uuid);
+						return $rep->uuid;
+					}else{
+						$this->error = $rep->error;
+						throw new Exception($rep->error, 1);
+					}
+				}
 			}else{
-				$this->error = $rep->error;
-				throw new Exception($rep->error, 1);
+				$rep = json_decode($this->sendRequest($this->urlbase."/api/uuid/get/".$user, array(), false));
+				if($rep->success){
+					$this->error = "";
+					return $rep->uuid;
+				}else{
+					$this->error = $rep->error;
+					throw new Exception($rep->error, 1);
+				}
 			}
 		}
 
@@ -143,13 +242,29 @@
 		* @return string The user's username
 		*/
 		public function getUserName($user){
-			$rep = json_decode($this->sendRequest($this->urlbase."/api/username/get/".$user, array(), false));
-			if($rep->success){
-				$this->error = "";
-				return $rep->username;
+			if($this->cache){
+				if($this->isCached("uuid-username", $user)){
+					return $this->getCache("uuid-username", $user);
+				}else{
+					$rep = json_decode($this->sendRequest($this->urlbase."/api/username/get/".$user, array(), false));
+					if($rep->success){
+						$this->error = "";
+						$this->setCache("uuid-username", $user, $rep->username);
+						return $rep->username;
+					}else{
+						$this->error = $rep->error;
+						throw new Exception($rep->error, 1);
+					}
+				}
 			}else{
-				$this->error = $rep->error;
-				throw new Exception($rep->error, 1);
+				$rep = json_decode($this->sendRequest($this->urlbase."/api/username/get/".$user, array(), false));
+				if($rep->success){
+					$this->error = "";
+					return $rep->username;
+				}else{
+					$this->error = $rep->error;
+					throw new Exception($rep->error, 1);
+				}
 			}
 		}
 
@@ -165,13 +280,29 @@
 		* @return boolean true if the user is registred or false if there is an error
 		*/
 		public function getAvatar($user){
-			$rep = json_decode($this->sendRequest($this->urlbase."/api/avatar/get/".$user, array(), false));
-			if($rep->success){
-				$this->error = "";
-				return $rep->avatar;
+			if($this->cache){
+				if($this->isCached("avatar", $user)){
+					return $this->getCache("avatar", $user);
+				}else{
+					$rep = json_decode($this->sendRequest($this->urlbase."/api/avatar/get/".$user, array(), false));
+					if($rep->success){
+						$this->error = "";
+						$this->setCache("avatar", $user, $rep->avatar);
+						return $rep->avatar;
+					}else{
+						$this->error = $rep->error;
+						throw new Exception($rep->error, 1);
+					}
+				}
 			}else{
-				$this->error = $rep->error;
-				throw new Exception($rep->error, 1);
+				$rep = json_decode($this->sendRequest($this->urlbase."/api/avatar/get/".$user, array(), false));
+				if($rep->success){
+					$this->error = "";
+					return $rep->avatar;
+				}else{
+					$this->error = $rep->error;
+					throw new Exception($rep->error, 1);
+				}
 			}
 		}
 
@@ -233,13 +364,29 @@
 		* @return boolean true if the user is verified
 		*/
 		public function isVerified($user){
-			$rep = json_decode($this->sendRequest($this->urlbase."/api/verified/get/".$user, array(), false));
-			if($rep->success){
-				$this->error = "";
-				return $rep->verified;
+			if($this->cache){
+				if($this->isCached("verified", $user)){
+					return $this->getCache("verified", $user);
+				}else{
+					$rep = json_decode($this->sendRequest($this->urlbase."/api/verified/get/".$user, array(), false));
+					if($rep->success){
+						$this->error = "";
+						$this->setCache("verified", $user, $rep->verified);
+						return $rep->verified;
+					}else{
+						$this->error = $rep->error;
+						throw new Exception($rep->error, 1);
+					}
+				}
 			}else{
-				$this->error = $rep->error;
-				throw new Exception($rep->error, 1);
+				$rep = json_decode($this->sendRequest($this->urlbase."/api/verified/get/".$user, array(), false));
+				if($rep->success){
+					$this->error = "";
+					return $rep->verified;
+				}else{
+					$this->error = $rep->error;
+					throw new Exception($rep->error, 1);
+				}
 			}
 		}
 
