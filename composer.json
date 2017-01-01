@@ -2,6 +2,7 @@
     "name": "stan-tab-corp/staileuaccounts",
     "description": "The new way to have accounts",
     "type": "stable",
+    "homepage": "https://stail.eu",
     "license": "STAN-TAb Corp. Licence",
     "authors": [
         {
@@ -10,5 +11,8 @@
         }
     ],
     "minimum-stability": "stable",
-    "require": {}
+    "require": {},
+    "autoload": {
+        "psr-0": { "STAILEUAccounts": "src/" }
+    }
 }
