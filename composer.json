@@ -1,0 +1,14 @@
+{
+    "name": "stan-tab-corp/staileuaccounts",
+    "description": "The new way to have accounts",
+    "type": "stable",
+    "license": "STAN-TAb Corp. Licence",
+    "authors": [
+        {
+            "name": "Thibault Junin",
+            "email": "spamfree@thibaultjunin.fr"
+        }
+    ],
+    "minimum-stability": "stable",
+    "require": {}
+}
