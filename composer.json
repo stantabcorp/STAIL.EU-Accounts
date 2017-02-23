@@ -1,9 +1,9 @@
 {
     "name": "stan-tab-corp/staileuaccounts",
     "description": "The new way to have accounts",
-    "type": "stable",
+    "type": "library",
     "homepage": "https://stail.eu",
-    "license": "STAN-TAb Corp. Licence",
+    "license": "STAN-TAb Corp. License",
     "authors": [
         {
             "name": "Thibault Junin",
