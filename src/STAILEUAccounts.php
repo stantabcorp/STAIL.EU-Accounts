@@ -14,17 +14,19 @@
 	class STAILEUAccounts{
 
 		/**
+		* @var string $key Contains the app key
+		*/
+		private $key;
+
+		/**
 		* @var string $urlbase Contain the API base URL
 		*/
-		private $urlbase = "https://accounts.stail.eu";
+		private $url = "https://accounts.stail.eu";
+
 		/**
 		* @var string $error Should contain the last error
 		*/
-		public $error = "";
-		/**
-		* @var boolean $cache If the cache is activated or not
-		*/
-		public $cache = false;
+		private $error = "";
 
 		/**
 		* __construct()
@@ -33,12 +35,11 @@
 		*
 		* @param boolean $cache If you want to use cache or not
 		*/
-		public function __construct($cache = false){
-			$this->cache = $cache;
-			if($cache){
-				if(!file_exists(".stail_cache")){
-					mkdir(".stail_cache");
-				}
+		public function __construct($key){
+			$this->key = $key;
+			$this->verifyKey();
+			if(!file_exists(".stail_cache")){
+				mkdir(".stail_cache");
 			}
 		}
 
@@ -95,7 +96,7 @@
 		private function isCached($type, $name){
 			if(file_exists(".stail_cache/".$type."/".$name)){
 				$last = date("U", filemtime(".stail_cache/".$type."/".$name));
-				if(intval($last)+300 >= time()){
+				if(intval($last)+600 >= time()){
 					return false;
 				}else{
 					return true;
@@ -118,6 +119,7 @@
 		*
 		* @return string The request's response
 		*/
+
 		private function sendRequest($url, $params, $post){
 			if($post){
 				$options = array(
@@ -145,206 +147,229 @@
 		}
 
 		/**
+		* verifyKey()
+		*
+		* This function willverify the provided app key
+		*
+		* @throws Exception If the app key is incorect
+		*/
+		private function verifyKey(){
+			$rep = json_decode($this->sendRequest($this->url."/api/key", array(
+				"key" => $this->key,
+			), true));
+			if(!$rep->success){
+				throw new Exception("Bad App Key !", 1);
+			}
+		}
+
+
+		/**
+		* getError()
+		*
+		* This function return the latest error
+		*
+		* @return string the latest error
+		*/
+		public function getError(){
+			return $this->error;
+		}
+
+
+		/**
 		* login()
 		*
-		* This function make the user log into STAIL.EU
+		* This function perform login
 		*
 		* @param string $user The user's username
 		* @param string $pass The user's password
 		*
-		* @return boolean true if the user is login or false if there is an error
+		* @return boolean true is the user is loged in
 		*/
-		public function login($user, $pass){
-			$rep = json_decode($this->sendRequest($this->urlbase."/api/login", array(
+		public function login($user, $pass){ // Fonctionne
+			$rep = json_decode($this->sendRequest($this->url."/api/login", array(
 				"username" => $user,
 				"password" => md5($pass),
-			), true));
-			if($rep->success){
-				$this->error = "";
+				"key" => $this->key,
+			), true), true);
+			if($rep['success']){
 				return true;
 			}else{
-				$this->error = $rep->error;
+				$this->error = $rep['error'];
 				return false;
 			}
 		}
 
 		/**
 		* register()
-		* 
-		* This function register an user into STAIL.EU
 		*
-		* @param string $user The user's username
-		* @param string $pass The user's password
+		* This function perform registration
 		*
-		* @return boolean true if the user is registred or false if there is an error
+		* @param array username -> The user's useranme
+		*              password -> The user's password
+		*              email    -> The user's email (not required)
+		*              number   -> The user's mobile phone number with country code
+		*              ip       -> The user's ip
+		*
+		* @return boolean true is the user is registred
 		*/
-		public function register($user, $pass){
-			$rep = json_decode($this->sendRequest($this->urlbase."/api/register", array(
-				"username" => $user,
-				"password" => md5($pass),
-			), true));
-			if($rep->success){
-				$this->error = "";
+		public function register($arr){
+			$data = array();
+			$data['username'] = $arr['username'];
+			$data['password'] = md5($arr['password']);
+			if(isset($data['email'])){
+				$data['email'] = $arr['email'];
+			}
+			$data['phone'] = $arr['number'];
+			$data['ip'] = $arr['ip'];
+			$data['key'] = $this->key;
+			$rep = json_decode($this->sendRequest($this->url."/api/register", $data, true), true);
+			if($rep['success']){
 				return true;
 			}else{
-				$this->error = $rep->error;
+				$this->error = $rep['error'];
 				return false;
 			}
 		}
 
 		/**
-		* getUUID()
-		* 
-		* This function return the user's UUID
+		* getEmail()
 		*
-		* @param string $user The user's username
+		* This function get the user's email
 		*
-		* @throws Exception If the request cannot be done
+		* @param string The user's uuid
 		*
-		* @return string The user's UUID
+		* @return string|boolean The user's email address or false
 		*/
-		public function getUUID($user){
-			if($this->cache){
-				if($this->isCached("username-uuid", $user)){
-					return $this->getCache("username-uuid", $user);
-				}else{
-					$rep = json_decode($this->sendRequest($this->urlbase."/api/uuid/get/".$user, array(), false));
-					if($rep->success){
-						$this->error = "";
-						$this->setCache("username-uuid", $user, $rep->uuid);
-						return $rep->uuid;
-					}else{
-						$this->error = $rep->error;
-						throw new Exception($rep->error, 1);
-					}
-				}
+		public function getEmail($uuid){ 
+			if($this->isCached("email", $uuid)){
+				return $this->getCache("email", $uuid);
 			}else{
-				$rep = json_decode($this->sendRequest($this->urlbase."/api/uuid/get/".$user, array(), false));
+				$rep = json_decode($this->sendRequest($this->url."/api/email/".$uuid, array(), false));
 				if($rep->success){
-					$this->error = "";
+					$this->setCache("email", $uuid, $rep->email);
+					return $rep->email;
+				}else{
+					$this->error = $rep->error;
+					return false;
+				}
+			}
+			
+		}
+
+		/**
+		* getUUID()
+		*
+		* This function return the user's uuid
+		*
+		* @param string The user's username
+		*
+		* @return string|boolean The user's uuid or false
+		*/
+		public function getUUID($username){ 
+			if($this->isCached("uuid", $username)){
+				return $this->getCache("uuid", $username);
+			}else{
+				$rep = json_decode($this->sendRequest($this->url."/api/uuid/".$username, array(), false));
+				if($rep->success){
+					$this->setCache("uuid", $username, $rep->uuid);
 					return $rep->uuid;
 				}else{
 					$this->error = $rep->error;
-					throw new Exception($rep->error, 1);
+					return false;
+				}
+			}
+			
+		}
+
+		/**
+		* getUsername()
+		*
+		* This function return the user's username
+		*
+		* @param string The user's uuid
+		*
+		* @return string|boolean The user's username or false
+		*/
+		public function getUsername($uuid){ 
+			if($this->isCached("username", $uuid)){
+				return $this->getCache("username", $uuid);
+			}else{
+				$rep = json_decode($this->sendRequest($this->url."/api/username/".$uuid, array(), false));
+				if($rep->success){
+					$this->setCache("username", $uuid, $rep->username);
+					return $rep->username;
+				}else{
+					$this->error = $rep->error;
+					return false;
 				}
 			}
 		}
 
 		/**
-		* getUserName()
-		* 
-		* This function return the user's username
+		* getRegisterDate()
 		*
-		* @param string $user The user's UUID
+		* This function return the user's registration date
 		*
-		* @throws Exception If the request cannot be done
+		* @param string The user's uuid
 		*
-		* @return string The user's username
+		* @return string|boolean The user's registration date or false
 		*/
-		public function getUserName($user){
-			if($this->cache){
-				if($this->isCached("uuid-username", $user)){
-					return $this->getCache("uuid-username", $user);
-				}else{
-					$rep = json_decode($this->sendRequest($this->urlbase."/api/username/get/".$user, array(), false));
-					if($rep->success){
-						$this->error = "";
-						$this->setCache("uuid-username", $user, $rep->username);
-						return $rep->username;
-					}else{
-						$this->error = $rep->error;
-						throw new Exception($rep->error, 1);
-					}
-				}
+		public function getRegisterDate($uuid){ 
+			if($this->isCached("date", $uuid)){
+				return $this->getCache("date", $uuid);
 			}else{
-				$rep = json_decode($this->sendRequest($this->urlbase."/api/username/get/".$user, array(), false));
+				$rep = json_decode($this->sendRequest($this->url."/api/date/".$uuid, array(), false));
 				if($rep->success){
-					$this->error = "";
-					return $rep->username;
+					$this->setCache("date", $uuid, $rep->date);
+					return $rep->date;
 				}else{
 					$this->error = $rep->error;
-					throw new Exception($rep->error, 1);
+					return false;
 				}
 			}
 		}
 
 		/**
 		* getAvatar()
-		* 
-		* This function return the base64 encoded user's avatar
 		*
-		* @param string $user The user's username
+		* This function return the user's avatar
 		*
-		* @throws Exception If the request cannot be done
+		* @param string The user's uuid
 		*
-		* @return boolean true if the user is registred or false if there is an error
+		* @return string|boolean The user's avatar or false
 		*/
-		public function getAvatar($user){
-			if($this->cache){
-				if($this->isCached("avatar", $user)){
-					return $this->getCache("avatar", $user);
-				}else{
-					$rep = json_decode($this->sendRequest($this->urlbase."/api/avatar/get/".$user, array(), false));
-					if($rep->success){
-						$this->error = "";
-						$this->setCache("avatar", $user, $rep->avatar);
-						return $rep->avatar;
-					}else{
-						$this->error = $rep->error;
-						throw new Exception($rep->error, 1);
-					}
-				}
+		public function getAvatar($uuid){ 
+			if($this->isCached("avatar", $uuid)){
+				return $this->getCache("avatar", $uuid);
 			}else{
-				$rep = json_decode($this->sendRequest($this->urlbase."/api/avatar/get/".$user, array(), false));
+				$rep = json_decode($this->sendRequest($this->url."/api/avatar/".$uuid, array(), false));
 				if($rep->success){
-					$this->error = "";
+					$this->setCache("avatar", $uuid, $rep->avatar);
 					return $rep->avatar;
 				}else{
 					$this->error = $rep->error;
-					throw new Exception($rep->error, 1);
+					return false;
 				}
 			}
 		}
 
 		/**
-		* setAvatar()
-		* 
-		* This function modify the user's avatar
+		* changeUsername()
 		*
-		* @param string $user The user's UUID
-		* @param string $url  The user's avatar url (Must be readable)
-		*
-		* @return boolean true if the user's avatar has been changed
-		*/
-		public function setAvatar($user, $url){
-			$rep = json_decode($this->sendRequest($this->urlbase."/api/avatar/set/".$user, array(
-				"url" => $url,
-			), true));
-			if($rep->success){
-				$this->error = "";
-				return true;
-			}else{
-				$this->error = $rep->error;
-				return false;
-			}
-		}
-
-		/**
-		* editUserName()
-		* 
 		* This function change the user's username
 		*
-		* @param string $user   The user's UUID
-		* @param string $nvuser The user's new username
+		* @param string The user's uuid
+		* @param string The new user's username
 		*
-		* @return boolean true if the user's username has been successfully changed
+		* @return boolean true If the username has been changed
 		*/
-		public function editUserName($user, $nvuser){
-			$rep = json_decode($this->sendRequest($this->urlbase."/api/username/edit/".$user, array(
-				"username" => $nvuser,
+		public function changeUsername($uuid, $username){ 
+			$rep = json_decode($this->sendRequest($this->url."/api/change/username", array(
+				"uuid" => $uuid,
+				"username" => $username,
+				"key" => $this->key,
 			), true));
 			if($rep->success){
-				$this->error = "";
 				return true;
 			}else{
 				$this->error = $rep->error;
@@ -353,65 +378,22 @@
 		}
 
 		/**
-		* isVerified()
-		* 
-		* This function check is a user is verified
+		* changeAvatar()
 		*
-		* @param string $user The user's UUID
+		* This function change the user's avatar
 		*
-		* @throws Exception If the request cannot be done
+		* @param string The user's uuid
+		* @param string The user's new avatar url
 		*
-		* @return boolean true if the user is verified
+		* @return boolean true If the avatar has been changed
 		*/
-		public function isVerified($user){
-			if($this->cache){
-				if($this->isCached("verified", $user)){
-					return $this->getCache("verified", $user);
-				}else{
-					$rep = json_decode($this->sendRequest($this->urlbase."/api/verified/get/".$user, array(), false));
-					if($rep->success){
-						$this->error = "";
-						$this->setCache("verified", $user, $rep->verified);
-						return $rep->verified;
-					}else{
-						$this->error = $rep->error;
-						throw new Exception($rep->error, 1);
-					}
-				}
-			}else{
-				$rep = json_decode($this->sendRequest($this->urlbase."/api/verified/get/".$user, array(), false));
-				if($rep->success){
-					$this->error = "";
-					return $rep->verified;
-				}else{
-					$this->error = $rep->error;
-					throw new Exception($rep->error, 1);
-				}
-			}
-		}
-
-		/**
-		* askVerified()
-		* 
-		* This function ask STAIL.EU's staff to verify a user
-		*
-		* @param string $user The user's UUID
-		* @param array  $data An array of user's informations Inforamtion required 
-		*
-		* @return boolean true if the request has been sent
-		*/
-		public function askVerified($user, $data){
-			$rep = json_decode($this->sendRequest($this->urlbase."/api/verified/ask/".$user, array(
-				"phone" => $data['phone'],
-				"adresse" => $data['address'],
-				"nom" => $data['name'],
-				"prenom" => $data['firstname'],
-				"pays" => $data['country'],
-				"email" => $data['email'],
-				"why" => $data['why'],
+		public function changeAvatar($uuid, $avatar){ 
+			$rep = json_decode($this->sendRequest($this->url."/api/change/avatar", array(
+				"uuid" => $uuid,
+				"avatar" => $avatar,
+				"key" => $this->key,
 			), true));
 			if($rep->success){
-				$this->error = "";
 				return true;
 			}else{
 				$this->error = $rep->error;
@@ -420,27 +402,101 @@
 		}
 
 		/**
-		* editPassword()
-		* 
+		* changePassword()
+		*
 		* This function change the user's password
 		*
-		* @param string $user    The user's UUID
-		* @param string $oldPass The user's old password
-		* @param string $newPass The user's new password
+		* @param string The user's uuid
+		* @param string The user's old password
+		* @param string The user's new password
 		*
-		* @return boolean true if the password has been changed
+		* @return boolean true If the password has been changed
 		*/
-		public function editPassword($user, $oldPass, $newPass){
-			$rep = json_decode($this->sendRequest($this->urlbase."/api/password/edit/".$user, array(
-				"actual" => md5($oldPass),
-				"new" => md5($newPass),
-			), true), true);
-			if($rep['success']){
-				$this->error = "";
+		public function changePassword($uuid, $oldpass, $nvpass){ 
+			$rep = json_decode($this->sendRequest($this->url."/api/change/password", array(
+				"uuid" => $uuid,
+				"old" => md5($oldpass),
+				"new" => md5($nvpass),
+				"key" => $this->key,
+			), true));
+			if($rep->success){
 				return true;
 			}else{
-				$this->error = $rep['error'];
+				$this->error = $rep->error;
 				return false;
+			}
+		}
+
+		/**
+		* changeEmail()
+		*
+		* This function change the user's email address
+		*
+		* @param string The user's uuid
+		* @param string The new user's new email address
+		*
+		* @return boolean true If the email address has been changed
+		*/
+		public function changeEmail($uuid, $email){ 
+			$rep = json_decode($this->sendRequest($this->url."/api/change/email", array(
+				"uuid" => $uuid,
+				"email" => $email,
+				"key" => $this->key,
+			), true));
+			if($rep->success){
+				return true;
+			}else{
+				$this->error = $rep->error;
+				return false;
+			}
+		}
+
+		/**
+		* changeAvatar()
+		*
+		* This function change the user's phone number
+		*
+		* @param string The user's uuid
+		* @param string The user's new mobile phone number with country code
+		*
+		* @return boolean true If the phone number has been changed
+		*/
+		public function changeNumber($uuid, $number){ 
+			$rep = json_decode($this->sendRequest($this->url."/api/change/number", array(
+				"uuid" => $uuid,
+				"number" => $number,
+				"key" => $this->key,
+			), true));
+			if($rep->success){
+				return true;
+			}else{
+				$this->error = $rep->error;
+				return false;
+			}
+		}
+
+		/**
+		* getUserRegistredByMe()
+		*
+		* This function get all the users registred with the app key
+		*
+		* @return array List of the users registred
+		*/
+		public function getUserRegistredByMe(){
+			if($this->isCached("userRegistredByMe", "userRegistredByMe")){
+				$data = json_decode($this->getCache("userRegistredByMe", "userRegistredByMe"));
+				return $data->users;
+			}else{
+				$rep = json_decode($this->sendRequest($this->url."/api/getUserRegistredByMe", array(
+					"key" => $this->key,
+				), true), true);
+				if($rep['success']){
+					$this->setCache("userRegistredByMe", "userRegistredByMe", json_encode($rep));
+					return $rep['users'];
+				}else{
+					$this->error = $rep['error'];
+					return false;
+				}
 			}
 		}
 
