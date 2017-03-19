@@ -9,7 +9,7 @@
 	* @copyright 2015-2016 STAN-TAb Corp.
 	* @license https://stantabcorp.com/license
 	* @link https://stail.eu
-	* @version 2.0.1
+	* @version 2.0.2
 	*/
 	class STAILEUAccounts{
 
@@ -17,6 +17,11 @@
 		* @var string $key Contains the app key
 		*/
 		private $key;
+
+		/**
+		* @var string $pkey Contains the public key
+		*/
+		private $pkey;
 
 		/**
 		* @var string $urlbase Contain the API base URL
@@ -35,8 +40,9 @@
 		*
 		* @param boolean $cache If you want to use cache or not
 		*/
-		public function __construct($key){
+		public function __construct($key, $pkey){
 			$this->key = $key;
+			$this->pkey = $pkey;
 			$this->verifyKey();
 			if(!file_exists(".stail_cache")){
 				mkdir(".stail_cache");
@@ -497,6 +503,54 @@
 					$this->error = $rep['error'];
 					return false;
 				}
+			}
+		}
+
+		/**
+		* loginForm()
+		*
+		* This function generate the login/register url
+		*
+		* @param string The redirect url
+		*
+		* @return string The login url
+		*/
+		public function loginForm($redir){
+			return "https://accounts.stail.eu/login?key=".$this->pkey."&redir=".urlencode($redir);
+		}
+
+		/**
+		* registerForm()
+		*
+		* This function generate the login/register url
+		*
+		* @param string The redirect url
+		*
+		* @return string The login url
+		*/
+		public function registerForm($redir){
+			return "https://accounts.stail.eu/register?key=".$this->pkey."&redir=".urlencode($redir);
+		}
+
+		/**
+		* checkLogin()
+		*
+		* This function verify the return code
+		*
+		* @param string The c-sa code
+		*
+		* @return boolean|string false or the user's uuid
+		*/
+		public function checkLogin($code){
+			$rep = json_decode($this->sendRequest($this->url."/api/check", array(
+				"code" => $code,
+				"key" => $this->key,
+			), true),true);
+			if($rep['success']){
+				return $rep['uuid'];
+			}else{
+				$this->error = $rep['error'];
+				return false;
 			}
 		}
 
