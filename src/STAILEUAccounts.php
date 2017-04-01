@@ -9,7 +9,7 @@
 	* @copyright 2015-2016 STAN-TAb Corp.
 	* @license https://stantabcorp.com/license
 	* @link https://stail.eu
-	* @version 2.0.2
+	* @version 2.0.3
 	*/
 	class STAILEUAccounts{
 
@@ -509,7 +509,7 @@
 		/**
 		* loginForm()
 		*
-		* This function generate the login/register url
+		* This function generate the login url
 		*
 		* @param string The redirect url
 		*
@@ -522,7 +522,7 @@
 		/**
 		* registerForm()
 		*
-		* This function generate the login/register url
+		* This function generate the register url
 		*
 		* @param string The redirect url
 		*
@@ -552,6 +552,19 @@
 				$this->error = $rep['error'];
 				return false;
 			}
+		}
+
+		/**
+		* forgotForm()
+		*
+		* This function generate the forgotten password url
+		*
+		* @param string The redirect url
+		*
+		* @return string The login url
+		*/
+		public function forgotForm($redir){
+			return "https://accounts.stail.eu/forgot?key=".$this->pkey."&redir=".urlencode($redir);
 		}
 
 	}
