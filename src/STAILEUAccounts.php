@@ -9,7 +9,7 @@
 	* @copyright 2015-2017 STAN-TAb Corp.
 	* @license https://stantabcorp.com/license
 	* @link https://stail.eu
-	* @version 2.0.3
+	* @version 2.0.4
 	*/
 	class STAILEUAccounts{
 
@@ -191,7 +191,7 @@
 		*
 		* @return boolean true is the user is loged in
 		*/
-		public function login($user, $pass){ // Fonctionne
+		public function login($user, $pass){
 			$rep = json_decode($this->sendRequest($this->url."/api/login", array(
 				"username" => $user,
 				"password" => md5($pass),
@@ -210,6 +210,7 @@
 		*
 		* This function perform registration
 		*
+		* @deprecated Major bugs or present !
 		* @param array username -> The user's useranme
 		*              password -> The user's password
 		*              email    -> The user's email (not required)
