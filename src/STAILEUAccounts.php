@@ -6,7 +6,7 @@
 	* The new way to have accounts
 	*
 	* @author Thibault JUNIN <spamfree@thibaultjunin.fr>
-	* @copyright 2015-2016 STAN-TAb Corp.
+	* @copyright 2015-2017 STAN-TAb Corp.
 	* @license https://stantabcorp.com/license
 	* @link https://stail.eu
 	* @version 2.0.3
