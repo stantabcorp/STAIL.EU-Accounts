@@ -66,7 +66,7 @@
 			}
 			if(file_exists(".stail_cache/".$type."/".$name)){
 				$last = date("U", filemtime(".stail_cache/".$type."/".$name));
-				if(intval($last)+300 >= time()){
+				if(intval($last)+300 <= time()){
 					unlink(".stail_cache/".$type."/".$name);
 					file_put_contents(".stail_cache/".$type."/".$name, $data);
 				}
@@ -102,7 +102,7 @@
 		private function isCached($type, $name){
 			if(file_exists(".stail_cache/".$type."/".$name)){
 				$last = date("U", filemtime(".stail_cache/".$type."/".$name));
-				if(intval($last)+600 >= time()){
+				if(intval($last)+300 <= time()){
 					return false;
 				}else{
 					return true;
