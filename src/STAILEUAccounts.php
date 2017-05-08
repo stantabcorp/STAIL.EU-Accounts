@@ -9,7 +9,7 @@
 	* @copyright 2015-2017 STAN-TAb Corp.
 	* @license https://stantabcorp.com/license
 	* @link https://stail.eu
-	* @version 2.0.4
+	* @version 2.0.5
 	*/
 	class STAILEUAccounts{
 
@@ -208,9 +208,8 @@
 		/**
 		* register()
 		*
-		* This function perform registration
+		* @deprecated Support will be dropped BEFORE 1st July 2017 !
 		*
-		* @deprecated Major bugs or present !
 		* @param array username -> The user's useranme
 		*              password -> The user's password
 		*              email    -> The user's email (not required)
@@ -513,11 +512,16 @@
 		* This function generate the login url
 		*
 		* @param string The redirect url
+		* @param string OPTIONAL A image url
 		*
 		* @return string The login url
 		*/
-		public function loginForm($redir){
-			return "https://accounts.stail.eu/login?key=".$this->pkey."&redir=".urlencode($redir);
+		public function loginForm($redir, $img = NULL){
+			if($img == NULL){
+				return "https://accounts.stail.eu/login?key=".$this->pkey."&redir=".$redir;
+			}else{
+				return "https://accounts.stail.eu/login?key=".$this->pkey."&redir=".$redir."&img=".$img;
+			}
 		}
 
 		/**
@@ -526,11 +530,16 @@
 		* This function generate the register url
 		*
 		* @param string The redirect url
+		* @param string OPTIONAL A image url
 		*
 		* @return string The login url
 		*/
-		public function registerForm($redir){
-			return "https://accounts.stail.eu/register?key=".$this->pkey."&redir=".urlencode($redir);
+		public function registerForm($redir, $img = NULL){
+			if($img == NULL){
+				return "https://accounts.stail.eu/register?key=".$this->pkey."&redir=".$redir;
+			}else{
+				return "https://accounts.stail.eu/register?key=".$this->pkey."&redir=".$redir."&img=".$img;
+			}
 		}
 
 		/**
@@ -561,11 +570,17 @@
 		* This function generate the forgotten password url
 		*
 		* @param string The redirect url
+		* @param string OPTIONAL A image url
 		*
 		* @return string The login url
 		*/
-		public function forgotForm($redir){
-			return "https://accounts.stail.eu/forgot?key=".$this->pkey."&redir=".urlencode($redir);
+		public function forgotForm($redir, $img = NULL){
+			if($img == NULL){
+				return "https://accounts.stail.eu/forgot?key=".$this->pkey."&redir=".$redir;
+			}else{
+				return "https://accounts.stail.eu/forgot?key=".$this->pkey."&redir=".$redir."&img=".$img;
+			}
+			
 		}
 
 	}
