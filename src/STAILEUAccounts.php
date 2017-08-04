@@ -9,7 +9,7 @@
 	* @copyright 2015-2017 STAN-TAb Corp.
 	* @license https://stantabcorp.com/license
 	* @link https://stail.eu
-	* @version 2.0.5
+	* @version 2.1.1
 	*/
 	class STAILEUAccounts{
 
@@ -38,7 +38,8 @@
 		*
 		* The construct method
 		*
-		* @param boolean $cache If you want to use cache or not
+		* @param string $key Your app private key
+		* @param string $pkey Your app public key
 		*/
 		public function __construct($key, $pkey){
 			$this->key = $key;
@@ -238,6 +239,83 @@
 		}
 
 		/**
+		* loginForm()
+		*
+		* This function generate the login url
+		*
+		* @param string The redirect url
+		* @param string OPTIONAL A image url
+		*
+		* @return string The login url
+		*/
+		public function loginForm($redir, $img = NULL){
+			if($img == NULL){
+				return $this->url."/login?key=".$this->pkey."&redir=".$redir;
+			}else{
+				return $this->url."/login?key=".$this->pkey."&redir=".$redir."&img=".$img;
+			}
+		}
+
+		/**
+		* registerForm()
+		*
+		* This function generate the register url
+		*
+		* @param string The redirect url
+		* @param string OPTIONAL A image url
+		*
+		* @return string The login url
+		*/
+		public function registerForm($redir, $img = NULL){
+			if($img == NULL){
+				return $this->url."/register?key=".$this->pkey."&redir=".$redir;
+			}else{
+				return $this->url."/register?key=".$this->pkey."&redir=".$redir."&img=".$img;
+			}
+		}
+
+		/**
+		* checkLogin()
+		*
+		* This function verify the return code
+		*
+		* @param string The c-sa code
+		*
+		* @return boolean|string false or the user's uuid
+		*/
+		public function checkLogin($code){
+			$rep = json_decode($this->sendRequest($this->url."/api/check", array(
+				"code" => $code,
+				"key" => $this->key,
+			), true),true);
+			if($rep['success']){
+				return $rep['uuid'];
+			}else{
+				$this->error = $rep['error'];
+				return false;
+			}
+		}
+
+		/**
+		* forgotForm()
+		*
+		* This function generate the forgotten password url
+		*
+		* @param string The redirect url
+		* @param string OPTIONAL A image url
+		*
+		* @return string The login url
+		*/
+		public function forgotForm($redir, $img = NULL){
+			if($img == NULL){
+				return $this->url."/forgot?key=".$this->pkey."&redir=".$redir;
+			}else{
+				return $this->url."/forgot?key=".$this->pkey."&redir=".$redir."&img=".$img;
+			}
+			
+		}
+
+		/**
 		* getEmail()
 		*
 		* This function get the user's email
@@ -360,6 +438,26 @@
 		}
 
 		/**
+		* getAvatarURL()
+		*
+		* This function return the user's avatar url
+		*
+		* @param string The user's uuid
+		*
+		* @return string The user's avatar url
+		*/
+		public function getAvatarURL($uuid){ 
+			// if($this->isCached("avatar_url", $uuid)){
+			// 	return $this->getCache("avatar_url", $uuid);
+			// }else{
+			// 	$rep = $this->url."/api/avatar/".$uuid.".png";
+			// 	$this->setCache("avatar_url", $uuid, $rep->avatar);
+			// 	return $rep;
+			// }
+			return null;
+		}
+
+		/**
 		* changeUsername()
 		*
 		* This function change the user's username
@@ -369,10 +467,11 @@
 		*
 		* @return boolean true If the username has been changed
 		*/
-		public function changeUsername($uuid, $username){ 
+		public function changeUsername($uuid, $username, $password){ 
 			$rep = json_decode($this->sendRequest($this->url."/api/change/username", array(
 				"uuid" => $uuid,
 				"username" => $username,
+				"password" => md5($password),
 				"key" => $this->key,
 			), true));
 			if($rep->success){
@@ -393,10 +492,11 @@
 		*
 		* @return boolean true If the avatar has been changed
 		*/
-		public function changeAvatar($uuid, $avatar){ 
+		public function changeAvatar($uuid, $avatar, $password){ 
 			$rep = json_decode($this->sendRequest($this->url."/api/change/avatar", array(
 				"uuid" => $uuid,
 				"avatar" => $avatar,
+				"password" => md5($password),
 				"key" => $this->key,
 			), true));
 			if($rep->success){
@@ -443,10 +543,11 @@
 		*
 		* @return boolean true If the email address has been changed
 		*/
-		public function changeEmail($uuid, $email){ 
+		public function changeEmail($uuid, $email, $password){ 
 			$rep = json_decode($this->sendRequest($this->url."/api/change/email", array(
 				"uuid" => $uuid,
 				"email" => $email,
+				"password" => md5($password),
 				"key" => $this->key,
 			), true));
 			if($rep->success){
@@ -458,7 +559,7 @@
 		}
 
 		/**
-		* changeAvatar()
+		* changeNumber()
 		*
 		* This function change the user's phone number
 		*
@@ -467,10 +568,11 @@
 		*
 		* @return boolean true If the phone number has been changed
 		*/
-		public function changeNumber($uuid, $number){ 
+		public function changeNumber($uuid, $number, $password){ 
 			$rep = json_decode($this->sendRequest($this->url."/api/change/number", array(
 				"uuid" => $uuid,
 				"number" => $number,
+				"password" => md5($password),
 				"key" => $this->key,
 			), true));
 			if($rep->success){
@@ -504,83 +606,6 @@
 					return false;
 				}
 			}
-		}
-
-		/**
-		* loginForm()
-		*
-		* This function generate the login url
-		*
-		* @param string The redirect url
-		* @param string OPTIONAL A image url
-		*
-		* @return string The login url
-		*/
-		public function loginForm($redir, $img = NULL){
-			if($img == NULL){
-				return "https://accounts.stail.eu/login?key=".$this->pkey."&redir=".$redir;
-			}else{
-				return "https://accounts.stail.eu/login?key=".$this->pkey."&redir=".$redir."&img=".$img;
-			}
-		}
-
-		/**
-		* registerForm()
-		*
-		* This function generate the register url
-		*
-		* @param string The redirect url
-		* @param string OPTIONAL A image url
-		*
-		* @return string The login url
-		*/
-		public function registerForm($redir, $img = NULL){
-			if($img == NULL){
-				return "https://accounts.stail.eu/register?key=".$this->pkey."&redir=".$redir;
-			}else{
-				return "https://accounts.stail.eu/register?key=".$this->pkey."&redir=".$redir."&img=".$img;
-			}
-		}
-
-		/**
-		* checkLogin()
-		*
-		* This function verify the return code
-		*
-		* @param string The c-sa code
-		*
-		* @return boolean|string false or the user's uuid
-		*/
-		public function checkLogin($code){
-			$rep = json_decode($this->sendRequest($this->url."/api/check", array(
-				"code" => $code,
-				"key" => $this->key,
-			), true),true);
-			if($rep['success']){
-				return $rep['uuid'];
-			}else{
-				$this->error = $rep['error'];
-				return false;
-			}
-		}
-
-		/**
-		* forgotForm()
-		*
-		* This function generate the forgotten password url
-		*
-		* @param string The redirect url
-		* @param string OPTIONAL A image url
-		*
-		* @return string The login url
-		*/
-		public function forgotForm($redir, $img = NULL){
-			if($img == NULL){
-				return "https://accounts.stail.eu/forgot?key=".$this->pkey."&redir=".$redir;
-			}else{
-				return "https://accounts.stail.eu/forgot?key=".$this->pkey."&redir=".$redir."&img=".$img;
-			}
-			
 		}
 
 	}
