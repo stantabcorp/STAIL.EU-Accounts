@@ -7,9 +7,9 @@
 	*
 	* @author Thibault JUNIN <spamfree@thibaultjunin.fr>
 	* @copyright 2015-2017 STAN-TAb Corp.
-	* @license https://stantabcorp.com/license
+	* @license proprietary
 	* @link https://stail.eu
-	* @version 2.2.0
+	* @version 2.2.1
 	*/
 	class STAILEUAccounts{
 
@@ -34,12 +34,12 @@
 		private $error = "";
 
 		/**
-		* @var string $cahce The cache path folder
+		* @var string $cache The cache path folder
 		*/
 		private $cache = "./.stail_cache";
 
 		/**
-		* @var string $cahce The cache path folder
+		* @var string $caching If the cache is enable or not
 		*/
 		private $caching = true;
 
@@ -48,9 +48,10 @@
 		*
 		* The construct method
 		*
-		* @param string $key Your app private key
-		* @param string $pkey Your app public key
-		* @param string $cache The cache path folder
+		* @param string  $key     Your app private key
+		* @param string  $pkey    Your app public key
+		* @param string  $cache   The cache path folder
+		* @param boolean $caching If the cache is enable or not
 		*/
 		public function __construct($key, $pkey, $cache = "./.stail_cache", $caching = true){
 			$this->key = $key;
@@ -227,11 +228,7 @@
 		*
 		* This function register a new user
 		*
-		* @param array username -> The user's useranme
-		*              password -> The user's password
-		*              email    -> The user's email (not required)
-		*              number   -> The user's mobile phone number with country code [Ex: +33695370712 OR 0033695370712] (not required)
-		*              ip       -> The user's ip
+		* @param array username -> The user's useranme, password -> The user's password, email -> The user's email (not required), number -> The user's mobile phone number with country code [Ex: +33695370712 OR 0033695370712] (not required), ip -> The user's ip
 		*
 		* @return boolean true is the user is registred
 		*/
@@ -261,8 +258,8 @@
 		*
 		* This function generate the login url
 		*
-		* @param string The redirect url
-		* @param string OPTIONAL A image url
+		* @param string $redir The redirect url
+		* @param string $img OPTIONAL A image url
 		*
 		* @return string The login url
 		*/
@@ -279,8 +276,8 @@
 		*
 		* This function generate the register url
 		*
-		* @param string The redirect url
-		* @param string OPTIONAL A image url
+		* @param string $redir The redirect url
+		* @param string $img OPTIONAL A image url
 		*
 		* @return string The login url
 		*/
@@ -297,7 +294,7 @@
 		*
 		* This function verify the return code
 		*
-		* @param string The c-sa code
+		* @param string $code The c-sa code
 		*
 		* @return boolean|string false or the user's uuid
 		*/
@@ -319,8 +316,8 @@
 		*
 		* This function generate the forgotten password url
 		*
-		* @param string The redirect url
-		* @param string OPTIONAL A image url
+		* @param string $redir The redirect url
+		* @param string $img OPTIONAL A image url
 		*
 		* @return string The login url
 		*/
@@ -338,7 +335,7 @@
 		*
 		* This function get the user's email
 		*
-		* @param string The user's uuid
+		* @param string $uuid The user's uuid
 		*
 		* @return string|boolean The user's email address or false
 		*/
@@ -365,7 +362,7 @@
 		*
 		* This function return the user's uuid
 		*
-		* @param string The user's username
+		* @param string $username The user's username
 		*
 		* @return string|boolean The user's uuid or false
 		*/
@@ -392,7 +389,7 @@
 		*
 		* This function return the user's username
 		*
-		* @param string The user's uuid
+		* @param string $uuid The user's uuid
 		*
 		* @return string|boolean The user's username or false
 		*/
@@ -418,7 +415,7 @@
 		*
 		* This function return the user's registration date
 		*
-		* @param string The user's uuid
+		* @param string $uuid The user's uuid
 		*
 		* @return string|boolean The user's registration date or false
 		*/
@@ -444,7 +441,7 @@
 		*
 		* This function return the user's avatar
 		*
-		* @param string The user's uuid
+		* @param string $uuid The user's uuid
 		*
 		* @return string|boolean The user's avatar or false
 		*/
@@ -470,7 +467,7 @@
 		*
 		* This function return the user's avatar url
 		*
-		* @param string The user's uuid
+		* @param string $uuid The user's uuid
 		*
 		* @return string The user's avatar url
 		*/
@@ -483,8 +480,9 @@
 		*
 		* This function change the user's username
 		*
-		* @param string The user's uuid
-		* @param string The new user's username
+		* @param string $uuid The user's uuid
+		* @param string $username The new user's username
+		* @param string $password The user's password
 		*
 		* @return boolean true If the username has been changed
 		*/
@@ -508,8 +506,9 @@
 		*
 		* This function change the user's avatar
 		*
-		* @param string The user's uuid
-		* @param string The user's new avatar url
+		* @param string $uuid The user's uuid
+		* @param string $avatar The user's new avatar url
+		* @param string $password The user's password
 		*
 		* @return boolean true If the avatar has been changed
 		*/
@@ -533,9 +532,9 @@
 		*
 		* This function change the user's password
 		*
-		* @param string The user's uuid
-		* @param string The user's old password
-		* @param string The user's new password
+		* @param string $uuid The user's uuid
+		* @param string $oldpass The user's old password
+		* @param string $nvpass The user's new password
 		*
 		* @return boolean true If the password has been changed
 		*/
@@ -559,8 +558,9 @@
 		*
 		* This function change the user's email address
 		*
-		* @param string The user's uuid
-		* @param string The new user's new email address
+		* @param string $uuid The user's uuid
+		* @param string $email The new user's new email address
+		* @param string $password The user's password
 		*
 		* @return boolean true If the email address has been changed
 		*/
@@ -584,8 +584,9 @@
 		*
 		* This function change the user's phone number
 		*
-		* @param string The user's uuid
-		* @param string The user's new mobile phone number with country code
+		* @param string $uuid The user's uuid
+		* @param string $number The user's new mobile phone number with country code
+		* @param string $password The user's password
 		*
 		* @return boolean true If the phone number has been changed
 		*/
@@ -636,7 +637,7 @@
 		*
 		* This function return is the phone number is verified or not
 		*
-		* @param string The user's uuid
+		* @param string $uuid The user's uuid
 		*
 		* @return boolean If the phone number is verified or not
 		*/
@@ -662,7 +663,7 @@
 		*
 		* This function return is the email address is verified or not
 		*
-		* @param string The user's uuid
+		* @param string $uuid The user's uuid
 		*
 		* @return boolean If the phone number is verified or not
 		*/
