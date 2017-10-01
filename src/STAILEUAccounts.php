@@ -9,7 +9,7 @@
 	* @copyright 2015-2017 STAN-TAb Corp.
 	* @license https://stantabcorp.com/license
 	* @link https://stail.eu
-	* @version 2.1.1
+	* @version 2.2.0
 	*/
 	class STAILEUAccounts{
 
@@ -34,19 +34,32 @@
 		private $error = "";
 
 		/**
+		* @var string $cahce The cache path folder
+		*/
+		private $cache = "./.stail_cache";
+
+		/**
+		* @var string $cahce The cache path folder
+		*/
+		private $caching = true;
+
+		/**
 		* __construct()
 		*
 		* The construct method
 		*
 		* @param string $key Your app private key
 		* @param string $pkey Your app public key
+		* @param string $cache The cache path folder
 		*/
-		public function __construct($key, $pkey){
+		public function __construct($key, $pkey, $cache = "./.stail_cache", $caching = true){
 			$this->key = $key;
 			$this->pkey = $pkey;
+			$this->cache = $cache;
+			$$this->caching = $caching;
 			$this->verifyKey();
-			if(!file_exists(".stail_cache")){
-				mkdir(".stail_cache");
+			if(!file_exists($this->cache)){
+				mkdir($this->cache);
 			}
 		}
 
@@ -62,17 +75,17 @@
 		* @return void
 		*/
 		private function setCache($type, $name, $data){
-			if(!file_exists(".stail_cache/".$type)){
-				mkdir(".stail_cache/".$type);
+			if(!file_exists($this->cache."/".$type)){
+				mkdir($this->cache."/".$type);
 			}
-			if(file_exists(".stail_cache/".$type."/".$name)){
-				$last = date("U", filemtime(".stail_cache/".$type."/".$name));
+			if(file_exists($this->cache."/".$type."/".$name)){
+				$last = date("U", filemtime($this->cache."/".$type."/".$name));
 				if(intval($last)+300 <= time()){
-					unlink(".stail_cache/".$type."/".$name);
-					file_put_contents(".stail_cache/".$type."/".$name, $data);
+					unlink($this->cache."/".$type."/".$name);
+					file_put_contents($this->cache."/".$type."/".$name, $data);
 				}
 			}else{
-				file_put_contents(".stail_cache/".$type."/".$name, $data);
+				file_put_contents($this->cache."/".$type."/".$name, $data);
 			}
 		}
 
@@ -87,7 +100,7 @@
 		* @return string The saved data
 		*/
 		private function getCache($type, $name){
-			return file_get_contents(".stail_cache/".$type."/".$name);
+			return file_get_contents($this->cache."/".$type."/".$name);
 		}
 
 		/**
@@ -101,8 +114,11 @@
 		* @return boolean If the data is cached or not (also if the cache has expired)
 		*/
 		private function isCached($type, $name){
-			if(file_exists(".stail_cache/".$type."/".$name)){
-				$last = date("U", filemtime(".stail_cache/".$type."/".$name));
+			if(!$this->caching){
+				return false;
+			}
+			if(file_exists($this->cache."/".$type."/".$name)){
+				$last = date("U", filemtime($this->cache."/".$type."/".$name));
 				if(intval($last)+300 <= time()){
 					return false;
 				}else{
@@ -209,12 +225,12 @@
 		/**
 		* register()
 		*
-		* @deprecated Support will be dropped BEFORE 1st July 2017 !
+		* This function register a new user
 		*
 		* @param array username -> The user's useranme
 		*              password -> The user's password
 		*              email    -> The user's email (not required)
-		*              number   -> The user's mobile phone number with country code
+		*              number   -> The user's mobile phone number with country code [Ex: +33695370712 OR 0033695370712] (not required)
 		*              ip       -> The user's ip
 		*
 		* @return boolean true is the user is registred
@@ -223,10 +239,12 @@
 			$data = array();
 			$data['username'] = $arr['username'];
 			$data['password'] = md5($arr['password']);
-			if(isset($data['email'])){
+			if(isset($arr['email'])){
 				$data['email'] = $arr['email'];
 			}
-			$data['phone'] = $arr['number'];
+			if(isset($arr['phone'])){
+				$data['phone'] = $arr['number'];
+			}
 			$data['ip'] = $arr['ip'];
 			$data['key'] = $this->key;
 			$rep = json_decode($this->sendRequest($this->url."/api/register", $data, true), true);
@@ -330,7 +348,9 @@
 			}else{
 				$rep = json_decode($this->sendRequest($this->url."/api/email/".$uuid, array(), false));
 				if($rep->success){
-					$this->setCache("email", $uuid, $rep->email);
+					if($this->caching){
+						$this->setCache("email", $uuid, $rep->email);
+					}
 					return $rep->email;
 				}else{
 					$this->error = $rep->error;
@@ -355,7 +375,9 @@
 			}else{
 				$rep = json_decode($this->sendRequest($this->url."/api/uuid/".$username, array(), false));
 				if($rep->success){
-					$this->setCache("uuid", $username, $rep->uuid);
+					if($this->caching){
+						$this->setCache("uuid", $username, $rep->uuid);
+					}
 					return $rep->uuid;
 				}else{
 					$this->error = $rep->error;
@@ -380,7 +402,9 @@
 			}else{
 				$rep = json_decode($this->sendRequest($this->url."/api/username/".$uuid, array(), false));
 				if($rep->success){
-					$this->setCache("username", $uuid, $rep->username);
+					if($this->caching){
+						$this->setCache("username", $uuid, $rep->username);
+					}
 					return $rep->username;
 				}else{
 					$this->error = $rep->error;
@@ -404,7 +428,9 @@
 			}else{
 				$rep = json_decode($this->sendRequest($this->url."/api/date/".$uuid, array(), false));
 				if($rep->success){
-					$this->setCache("date", $uuid, $rep->date);
+					if($this->caching){
+						$this->setCache("date", $uuid, $rep->date);
+					}
 					return $rep->date;
 				}else{
 					$this->error = $rep->error;
@@ -428,7 +454,9 @@
 			}else{
 				$rep = json_decode($this->sendRequest($this->url."/api/avatar/".$uuid, array(), false));
 				if($rep->success){
-					$this->setCache("avatar", $uuid, $rep->avatar);
+					if($this->caching){
+						$this->setCache("avatar", $uuid, $rep->avatar);
+					}
 					return $rep->avatar;
 				}else{
 					$this->error = $rep->error;
@@ -447,14 +475,7 @@
 		* @return string The user's avatar url
 		*/
 		public function getAvatarURL($uuid){ 
-			// if($this->isCached("avatar_url", $uuid)){
-			// 	return $this->getCache("avatar_url", $uuid);
-			// }else{
-			// 	$rep = $this->url."/api/avatar/".$uuid.".png";
-			// 	$this->setCache("avatar_url", $uuid, $rep->avatar);
-			// 	return $rep;
-			// }
-			return null;
+			return $this->url."/api/avatar/image/".$uuid;
 		}
 
 		/**
@@ -599,10 +620,89 @@
 					"key" => $this->key,
 				), true), true);
 				if($rep['success']){
-					$this->setCache("userRegistredByMe", "userRegistredByMe", json_encode($rep));
+					if($this->caching){
+						$this->setCache("userRegistredByMe", "userRegistredByMe", json_encode($rep));
+					}
 					return $rep['users'];
 				}else{
 					$this->error = $rep['error'];
+					return false;
+				}
+			}
+		}
+
+		/**
+		* isPhoneVerified()
+		*
+		* This function return is the phone number is verified or not
+		*
+		* @param string The user's uuid
+		*
+		* @return boolean If the phone number is verified or not
+		*/
+		public function isPhoneVerified($uuid){ 
+			if($this->isCached("phone-verified", $uuid)){
+				return boolval($this->getCache("phone-verified", $uuid));
+			}else{
+				$rep = json_decode($this->sendRequest($this->url."/api/verified/phone/".$uuid, array(), false));
+				if($rep->success){
+					if($this->caching){
+						$this->setCache("phone-verified", $uuid, $rep->verified);
+					}
+					return $rep->verified;
+				}else{
+					$this->error = $rep->error;
+					return false;
+				}
+			}
+		}
+
+		/**
+		* isEmailVerified()
+		*
+		* This function return is the email address is verified or not
+		*
+		* @param string The user's uuid
+		*
+		* @return boolean If the phone number is verified or not
+		*/
+		public function isEmailVerified($uuid){ 
+			if($this->isCached("email-verified", $uuid)){
+				return boolval($this->getCache("email-verified", $uuid));
+			}else{
+				$rep = json_decode($this->sendRequest($this->url."/api/verified/email/".$uuid, array(), false));
+				if($rep->success){
+					if($this->caching){
+						$this->setCache("email-verified", $uuid, $rep->verified);
+					}
+					return $rep->verified;
+				}else{
+					$this->error = $rep->error;
+					return false;
+				}
+			}
+		}
+
+		/**
+		* status()
+		*
+		* This function get the current STAIL.EU Accounts status
+		*
+		* @return array|boolean status or false if there is an error
+		*/
+		public function status(){
+			if($this->isCached("status", "status")){
+				$data = json_decode($this->getCache("status", "status"));
+				return $data->users;
+			}else{
+				$rep = json_decode($this->sendRequest("https://stail.eu/api/status", [], false), true);
+				if($rep['success']){
+					if($this->caching){
+						$this->setCache("status", "status", json_encode($rep));
+					}
+					return $rep;
+				}else{
+					$this->error = "Unknown error";
 					return false;
 				}
 			}
