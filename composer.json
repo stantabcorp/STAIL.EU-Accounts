@@ -1,5 +1,5 @@
 {
-    "name": "stan-tab-corp/staileuaccounts",
+    "name": "stan-tab-corp/staileu-accounts",
     "description": "The new way to have accounts",
     "type": "library",
     "homepage": "https://stail.eu",
@@ -11,8 +11,13 @@
         }
     ],
     "minimum-stability": "stable",
-    "require": {},
+    "require": {
+        "guzzlehttp/guzzle": "^6.3"
+    },
     "autoload": {
-        "psr-0": { "STAILEUAccounts": "src/" }
+        "psr-4": { 
+            "STAILEUAccounts\\": "src/" 
+        }
     }
 }
+
