@@ -70,40 +70,206 @@ You have login the user, now you can do whatever you want!
 You can use our form to login an user, in the case you will just receive the *c-sa token* and you just have to get the uuid and you're done!
 
 ## Register a user
-Documentation is coming soon...
+In order to register a user call:
+```php
+    $stail->register("username", "password", "email"|null, "phone number"|null, "ip");
+```
+
+* The first parameter is the username
+* The second parameter his the password
+* The third parameter is the user email address, this filed is *not required*, please set it at `null` if no email address is given
+* The fourth one is the phone number, this field is *not required*, if empty please set it to `null`
+* The fifth is the user's ip\*
+
+This function will return a c-a token, in order to get the uuid, call
+```php
+    $stail->check("c-sa token");
+```
+
+\* Why we are getting the user's IP? 
+1. There are many reasons why. First of all, if the user lost his password, and if he didn't give a phone number or an email address, he can send us an email, with the ip he adds when he registered, his username, and a copy of his identity card.
+2. We are making statistics, which are done at the end of each month, with the country of origin and the user's language.
+3. We are also counting how many user get registered with the same ip to check if there is not bot spamming.
+
 ## Get the login form URL
-Documentation is coming soon...
+If your website doesn't have an SSL certificate you have to use our form!
+To get the login form URL please call:
+
+```php
+    $stail->loginForm("callback url");
+```
+
+* The parameter needs to be the URL the user will be redirected to when he completes the login process.
+
 ## Get the register form URL
-Documentation is coming soon...
+If your website doesn't have an SSL certificate you have to use our form!
+To get the registration form url please call:
+
+```php
+    $stail->registerForm("callback url");
+```
+
+* The parameter needs to be the URL the user will be redirected to when he complete the registration process.
+
 ## Get the password forgot form URL
-Documentation is coming soon...
+If your website doesn't have an SSL certificate you have to use our form!
+To get the password forgot form url please call:
+
+```php
+    $stail->forgotForm("callback url");
+```
+
+* The parameter needs to be the URL the user will be redirected to when he complete the password reset process.
+
 ## Get a user's username
-Documentation is coming soon...
+You have the uuid but you want his username? **NO PROBLEM!**
+Just call:
+```php
+    $stail->getUsername("uuid");
+```
+
+* The parameter is the user's uuid
+
 ## Get a user's uuid
-Documentation is coming soon...
+You have the user's username but you want his uuid?
+Just call:
+```php
+    $stail->getUUID("username");
+```
+
+* The parameter is the user's username
+
 ## Get a user's email address
-Documentation is coming soon...
+You have the user's uuid but you want his email address?
+Just call:
+```php
+    $stail->getEmail("uuid");
+```
+
+* The parameter is the user's uuid
+
 ## Get a user's avatar
-Documentation is coming soon...
+You have the user's uuid but you want his avatar?
+Just call:
+```php
+    $stail->getAvatar("uuid");
+```
+
+* The parameter is the user's uuid
+
+This function will return you an instance of STAILEUAccounts\Avatar. To get the avatar in base64 call `getBase64()` if you want the URL call `getUrl()`
+
 ## Get a user's registration date
-Documentation is coming soon...
+You have the user's uuid but you want his registration date?
+Just call:
+```php
+    $stail->getRegistrationDate("uuid");
+```
+
+* The parameter is the user's uuid
+
 ## Know if a user's email address is verified
-Documentation is coming soon...
+I know you will ask me to check if an email address is verified correct?
+So... simply call:
+
+```php
+    $stail->isEmailAddressVerified("uuid");
+```
+
+* The parameter is the user's uuid
+* The function will return you a boolean
+
 ## Know if a user's phone number is verified
-Documentation is coming soon...
+Again? But the phone number correct?
+So...
+
+```php
+    $stail->isPhoneNumberVerified("uuid");
+```
+
+* The parameter is the user's uuid
+* The function will return you a boolean
+
 ## Verify a user's email address
-Documentation is coming soon...
+Ok ok, now you know that the user didn't verify his email address, so you want to resend a demand
+
+```php
+    $stail->verifyEmailAddress("uuid");
+```
+
+* The parameter is the user's uuid
+
 ## Verify a user's phone number
-Documentation is coming soon...
+Ok, the same thing with the phone number?
+
+```php
+    $stail->verifyPhoneNumber("uuid");
+```
+
+* The parameter is the user's uuid
+
 ## Logout a user
-Documentation is coming soon...
+Now we will learn how to log out a user. This will result in a deletion of the c-sa token.
+
+```php
+    $stail->logout("c-sa");
+```
+
+* The parameter is the c-sa token
+
 ## Change a user's username
-Documentation is coming soon...
+Now we will begin in a very special section, we will edit the user's profile. Note that if an app is modifying a user profile without the account owner authorization, the app will be deleted and the website banned!
+
+In order to change the username call:
+
+```php
+    $stail->changeUsername("username", "uuid", "c-sa");
+```
+
+* The first parameter is the new username
+* The second parameter is the user's uuid
+* The third parameter is the c-sa token
+
 ## Change a user's password
-Documentation is coming soon...
+In order to change the password call:
+
+```php
+    $stail->changePassword("password", "uuid", "c-sa");
+```
+
+* The first parameter is the new password
+* The second parameter is the user's uuid
+* The third parameter is the c-sa token
+
 ## Change a user's email address
-Documentation is coming soon...
+In order to change the email address call:
+
+```php
+    $stail->changeEmail("email address", "uuid", "c-sa");
+```
+
+* The first parameter is the new email address
+* The second parameter is the user's uuid
+* The third parameter is the c-sa token
+
 ## Change a user's phone number
-Documentation is coming soon...
+In order to change the phone number call:
+
+```php
+    $stail->changeNumber("phone number", "uuid", "c-sa");
+```
+
+* The first parameter is the new phone number
+* The second parameter is the user's uuid
+* The third parameter is the c-sa token
+
 ## Change a user's avatar
-Documentation is coming soon...
+In order to change the avatar call:
+
+```php
+    $stail->changeAvatar("avatar url", "uuid", "c-sa");
+```
+
+* The first parameter is the new avatar URL (It must be accessible from outside)
+* The second parameter is the user's uuid
+* The third parameter is the c-sa token
