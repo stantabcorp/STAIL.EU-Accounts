@@ -7,7 +7,7 @@
         private $private_key;
         private $public_key;
         private $cache  = false;
-        private $api    = "http://localhost:8080/staileu-accounts/api/public";
+        private $api    = "https://api.stail.eu/";
 
         public function __construct($private_key, $public_key, $cache = false){
             if($cache != false){
