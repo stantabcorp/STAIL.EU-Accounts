@@ -10,18 +10,25 @@ class STAILEUAccounts
 	private $privateKey;
 	private $publicKey;
 	private $cache = false;
-	private $api = "https://api.stail.eu/";
 
-	public function __construct($privateKey, $publicKey, $cache = false)
+	/**
+	 * STAIL.EU api endpoint
+	 *
+	 * @var string
+	 */
+	private $endpoint = "https://api.stail.eu/";
+
+	public function __construct($privateKey, $publicKey, $cache = false, $customEndpoint = false)
 	{
 		if ($cache != false) {
-			if (!($cache instanceof \STAILEUAccounts\Cache)) {
+			if (!($cache instanceof Cache)) {
 				throw new \Exception("Incorrect third parameter, it MUST BE an instance of '\STAILEUAccounts\Cache' or 'false'", 1);
 			}
 		}
 		$this->cache = $cache;
 		$this->privateKey = $privateKey;
 		$this->publicKey = $publicKey;
+		$this->endpoint = (!$customEndpoint) ? $this->endpoint : $customEndpoint;
 		$this->client = new Client();
 	}
 
@@ -32,7 +39,7 @@ class STAILEUAccounts
 
 	public function getApiUrl()
 	{
-		return $this->api;
+		return $this->endpoint;
 	}
 
 	public function getPublicKey()
@@ -40,15 +47,38 @@ class STAILEUAccounts
 		return $this->publicKey;
 	}
 
+	/**
+	 * Do HTTP request with guzzle client
+	 *
+	 * @param string $verb
+	 * @param string $url
+	 * @param array $params
+	 * @param array $otherParams
+	 * @return mixed|\Psr\Http\Message\ResponseInterface
+	 */
+	private function doRequest(string $verb, string $url, array $params = [], array $otherParams = [])
+	{
+		return $this->client->request($verb, $this->endpoint . $url, [
+			'form_params' => $params,
+			'http_errors' => false,
+			$otherParams
+		]);
+	}
+
+	/**
+	 * Login user with username and password
+	 * Return error if fail or Login instance if success
+	 *
+	 * @param $username
+	 * @param $password
+	 * @return Error|Login
+	 */
 	public function login($username, $password)
 	{
-		$res = $this->client->request('POST', $this->api . "/login", [
-			'form_params' => [
-				"username" => $username,
-				"password" => md5($password),
-				"site_key" => $this->privateKey,
-			],
-			'http_errors' => false,
+		$res = $this->doRequest('POST', "/login", [
+			"username" => $username,
+			"password" => md5($password),
+			"site_key" => $this->privateKey,
 		]);
 		$json = json_decode($res->getBody(), true);
 		if ($res->getStatusCode() == 200) {
@@ -62,6 +92,17 @@ class STAILEUAccounts
 		}
 	}
 
+	/**
+	 * Register user with username, password, email (not required) and phone (not required) and user's IP
+	 * Return c-sa token string if success or Error instance if fail.
+	 *
+	 * @param $username
+	 * @param $password
+	 * @param null $email
+	 * @param null $phone
+	 * @param $ip
+	 * @return Error|string
+	 */
 	public function register($username, $password, $email = NULL, $phone = NULL, $ip)
 	{
 		$d = [
@@ -76,14 +117,11 @@ class STAILEUAccounts
 		if ($phone != NULL) {
 			$d['phone'] = $phone;
 		}
-		$res = $this->client->request('POST', $this->api . "/register", [
-			'form_params' => $d,
-			'http_errors' => false,
-		]);
+		$res = $this->doRequest('POST', '/register', $d);
 		$json = json_decode($res->getBody(), true);
 		if ($res->getStatusCode() == 200) {
 			if ($json['success']) {
-				return $json['c-sa'];
+				return (string)$json['c-sa'];
 			} else {
 				return new Error($res->getStatusCode(), $json['error']);
 			}
@@ -94,11 +132,8 @@ class STAILEUAccounts
 
 	public function logout($CSA)
 	{
-		$this->client->request('POST', $this->api . "/logout", [
-			'form_params' => [
-				'c-sa' => $CSA,
-			],
-			'http_errors' => false,
+		$this->doRequest('POST', "/logout", [
+			'c-sa' => $CSA
 		]);
 
 		return true;
@@ -119,13 +154,42 @@ class STAILEUAccounts
 		return "https://accounts.stail.eu/forgot?key=" . $this->publicKey . "&redir=" . $redirection;
 	}
 
+	/**
+	 * Get array of user's info from user's uuid
+	 * WARN: this function may return 404 status because it's young route in api
+	 *
+	 * @param $uuid
+	 * @return array|Error
+	 */
+	public function getUser($uuid)
+	{
+		$res = $this->doRequest('GET', "/user/{$uuid}");
+		$json = json_decode($res->getBody());
+		if ($res->getStatusCode() == 200) {
+			if ($json->success) {
+				return $json;
+			} else {
+				return new Error($res->getStatusCode(), $json->error);
+			}
+		} else {
+			return new Error($res->getStatusCode(), $json->error);
+		}
+	}
+
+	/**
+	 * Get user uuid from username
+	 * Return uuid string if success or Error instance if fail
+	 *
+	 * @param $username
+	 * @return Error|string
+	 */
 	public function getUUID($username)
 	{
 		if ($this->cache != false) {
 			if ($this->cache->isCached("uuid", $username)) {
 				return $this->cache->getCache("uuid", $username);
 			} else {
-				$res = $this->client->request('GET', $this->api . "/uuid/" . $username, ['http_errors' => false]);
+				$res = $this->doRequest('GET', "/uuid/{$username}");
 				$json = json_decode($res->getBody());
 				if ($res->getStatusCode() == 200) {
 					if ($json->success) {
@@ -140,7 +204,7 @@ class STAILEUAccounts
 				}
 			}
 		} else {
-			$res = $this->client->request('GET', $this->api . "/uuid/" . $username, ['http_errors' => false]);
+			$res = $this->doRequest('GET', "/uuid/{$username}");
 			$json = json_decode($res->getBody());
 			if ($res->getStatusCode() == 200) {
 				if ($json->success) {
@@ -154,13 +218,20 @@ class STAILEUAccounts
 		}
 	}
 
+	/**
+	 * Get username from uuid
+	 * Return username string if success or Error instance if fail
+	 *
+	 * @param $uuid
+	 * @return Error|string
+	 */
 	public function getUsername($uuid)
 	{
 		if ($this->cache != false) {
 			if ($this->cache->isCached("username", $uuid)) {
 				return $this->cache->getCache("username", $uuid);
 			} else {
-				$res = $this->client->request('GET', $this->api . "/username/" . $uuid, ['http_errors' => false]);
+				$res = $this->doRequest('GET', "/username/{$uuid}");
 				$json = json_decode($res->getBody());
 				if ($res->getStatusCode() == 200) {
 					if ($json->success) {
@@ -175,7 +246,7 @@ class STAILEUAccounts
 				}
 			}
 		} else {
-			$res = $this->client->request('GET', $this->api . "/username/" . $uuid, ['http_errors' => false]);
+			$res = $this->doRequest('GET', "/username/{$uuid}");
 			$json = json_decode($res->getBody());
 			if ($res->getStatusCode() == 200) {
 				if ($json->success) {
@@ -189,19 +260,26 @@ class STAILEUAccounts
 		}
 	}
 
+	/**
+	 * Get Avatar from user's uuid
+	 * Return Avatar instance if success or Error instance if fail
+	 *
+	 * @param $uuid
+	 * @return Avatar|Error
+	 */
 	public function getAvatar($uuid)
 	{
 		if ($this->cache != false) {
 			if ($this->cache->isCached("avatar", $uuid)) {
-				return new Avatar($this->cache->getCache("avatar", $uuid), $this->api . "/avatar/image/" . $uuid);
+				return new Avatar($this->cache->getCache("avatar", $uuid), $this->endpoint . "/avatar/image/" . $uuid);
 			} else {
-				$res = $this->client->request('GET', $this->api . "/avatar/" . $uuid, ['http_errors' => false]);
+				$res = $this->doRequest('GET', "/avatar/{$uuid}");
 				$json = json_decode($res->getBody());
 				if ($res->getStatusCode() == 200) {
 					if ($json->success) {
 						$this->cache->setCache("avatar", $uuid, $json->avatar);
 
-						return new Avatar($json->avatar, $this->api . "/avatar/image/" . $uuid);
+						return new Avatar($json->avatar, $this->endpoint . "/avatar/image/" . $uuid);
 					} else {
 						return new Error($res->getStatusCode(), $json->error);
 					}
@@ -210,11 +288,11 @@ class STAILEUAccounts
 				}
 			}
 		} else {
-			$res = $this->client->request('GET', $this->api . "/avatar/" . $uuid, ['http_errors' => false]);
+			$res = $this->doRequest('GET', "/avatar/{$uuid}");
 			$json = json_decode($res->getBody());
 			if ($res->getStatusCode() == 200) {
 				if ($json->success) {
-					return new Avatar($json->avatar, $this->api . "/avatar/image/" . $uuid);
+					return new Avatar($json->avatar, $this->endpoint . "/avatar/image/" . $uuid);
 				} else {
 					return new Error($res->getStatusCode(), $json->error);
 				}
@@ -224,13 +302,20 @@ class STAILEUAccounts
 		}
 	}
 
+	/**
+	 * Get email from user's uuid
+	 * Return email string if success or Error instance if fail
+	 *
+	 * @param $uuid
+	 * @return Error|string
+	 */
 	public function getEmail($uuid)
 	{
 		if ($this->cache != false) {
 			if ($this->cache->isCached("email", $uuid)) {
 				return $this->cache->getCache("email", $uuid);
 			} else {
-				$res = $this->client->request('GET', $this->api . "/email/" . $uuid, ['http_errors' => false]);
+				$res = $this->doRequest('GET', "/email/{$uuid}");
 				$json = json_decode($res->getBody());
 				if ($res->getStatusCode() == 200) {
 					if ($json->success) {
@@ -245,7 +330,7 @@ class STAILEUAccounts
 				}
 			}
 		} else {
-			$res = $this->client->request('GET', $this->api . "/email/" . $uuid, ['http_errors' => false]);
+			$res = $this->doRequest('GET', "/email/{$uuid}");
 			$json = json_decode($res->getBody());
 			if ($res->getStatusCode() == 200) {
 				if ($json->success) {
@@ -259,13 +344,20 @@ class STAILEUAccounts
 		}
 	}
 
+	/**
+	 * Get email from user's uuid
+	 * Return date time (YYYY-MM-DD HH:ii:ss) string if success or Error instance if fail
+	 *
+	 * @param $uuid
+	 * @return Error|string
+	 */
 	public function getRegistrationDate($uuid)
 	{
 		if ($this->cache != false) {
 			if ($this->cache->isCached("date", $uuid)) {
 				return $this->cache->getCache("date", $uuid);
 			} else {
-				$res = $this->client->request('GET', $this->api . "/date/" . $uuid, ['http_errors' => false]);
+				$res = $this->doRequest('GET', "/date/{$uuid}");
 				$json = json_decode($res->getBody());
 				if ($res->getStatusCode() == 200) {
 					if ($json->success) {
@@ -280,7 +372,7 @@ class STAILEUAccounts
 				}
 			}
 		} else {
-			$res = $this->client->request('GET', $this->api . "/date/" . $uuid, ['http_errors' => false]);
+			$res = $this->doRequest('GET', "/date/{$uuid}");
 			$json = json_decode($res->getBody());
 			if ($res->getStatusCode() == 200) {
 				if ($json->success) {
@@ -294,19 +386,25 @@ class STAILEUAccounts
 		}
 	}
 
-	public function getUsersRegistredByMe()
+	/**
+	 * Get array of users registered by your site key
+	 * Return array if success or Error instance if fail
+	 *
+	 * @return array|Error
+	 */
+	public function getUsersRegisteredByMe()
 	{
 		if ($this->cache != false) {
 			if ($this->cache->isCached("registered", "site")) {
 				return json_decode($this->cache->getCache("registered", "site"), true);
 			} else {
-				$res = $this->client->request('GET', $this->api . "/registredbyme", ['http_errors' => false]);
+				$res = $this->doRequest('GET', "/registredbyme");
 				$json = json_decode($res->getBody());
 				if ($res->getStatusCode() == 200) {
 					if ($json->success) {
 						$this->cache->setCache("registered", "site", json_encode($json->users));
 
-						return $json->users;
+						return (array)$json->users;
 					} else {
 						return new Error($res->getStatusCode(), $json->error);
 					}
@@ -315,7 +413,7 @@ class STAILEUAccounts
 				}
 			}
 		} else {
-			$res = $this->client->request('GET', $this->api . "/registredbyme", ['http_errors' => false]);
+			$res = $this->doRequest('GET', "/registredbyme");
 			$json = json_decode($res->getBody());
 			if ($res->getStatusCode() == 200) {
 				if ($json->success) {
@@ -329,16 +427,22 @@ class STAILEUAccounts
 		}
 	}
 
+	/**
+	 * Change user's name
+	 * Return true bool if success or Error instance if fail
+	 *
+	 * @param $username
+	 * @param $uuid
+	 * @param $CSA
+	 * @return bool|Error
+	 */
 	public function changeUsername($username, $uuid, $CSA)
 	{
-		$res = $this->client->request('POST', $this->api . "/change/username", [
-			'form_params' => [
-				"c-sa" => $CSA,
-				"username" => $username,
-				"uuid" => $uuid,
-				"site_key" => $this->privateKey,
-			],
-			'http_errors' => false,
+		$res = $this->doRequest('POST', "/change/username", [
+			"c-sa" => $CSA,
+			"username" => $username,
+			"uuid" => $uuid,
+			"site_key" => $this->privateKey,
 		]);
 		$json = json_decode($res->getBody(), true);
 		if ($res->getStatusCode() == 200) {
@@ -352,16 +456,22 @@ class STAILEUAccounts
 		}
 	}
 
+	/**
+	 * Change user's password
+	 * Return true bool if success or Error instance if fail
+	 *
+	 * @param $password
+	 * @param $uuid
+	 * @param $CSA
+	 * @return bool|Error
+	 */
 	public function changePassword($password, $uuid, $CSA)
 	{
-		$res = $this->client->request('POST', $this->api . "/change/password", [
-			'form_params' => [
-				"c-sa" => $CSA,
-				"password" => md5($password),
-				"uuid" => $uuid,
-				"site_key" => $this->privateKey,
-			],
-			'http_errors' => false,
+		$res = $this->doRequest('POST', "/change/password", [
+			"c-sa" => $CSA,
+			"password" => md5($password),
+			"uuid" => $uuid,
+			"site_key" => $this->privateKey,
 		]);
 		$json = json_decode($res->getBody(), true);
 		if ($res->getStatusCode() == 200) {
@@ -375,16 +485,22 @@ class STAILEUAccounts
 		}
 	}
 
+	/**
+	 * Change user's email
+	 * Return true bool if success or Error instance if fail
+	 *
+	 * @param $email
+	 * @param $uuid
+	 * @param $CSA
+	 * @return bool|Error
+	 */
 	public function changeEmail($email, $uuid, $CSA)
 	{
-		$res = $this->client->request('POST', $this->api . "/change/email", [
-			'form_params' => [
-				"c-sa" => $CSA,
-				"email" => $email,
-				"uuid" => $uuid,
-				"site_key" => $this->privateKey,
-			],
-			'http_errors' => false,
+		$res = $this->doRequest('POST', "/change/email", [
+			"c-sa" => $CSA,
+			"email" => $email,
+			"uuid" => $uuid,
+			"site_key" => $this->privateKey,
 		]);
 		$json = json_decode($res->getBody(), true);
 		if ($res->getStatusCode() == 200) {
@@ -400,14 +516,11 @@ class STAILEUAccounts
 
 	public function changeNumber($phone, $uuid, $CSA)
 	{
-		$res = $this->client->request('POST', $this->api . "/change/number", [
-			'form_params' => [
-				"c-sa" => $CSA,
-				"phone" => $phone,
-				"uuid" => $uuid,
-				"site_key" => $this->privateKey,
-			],
-			'http_errors' => false,
+		$res = $this->doRequest('POST', "/change/number", [
+			"c-sa" => $CSA,
+			"phone" => $phone,
+			"uuid" => $uuid,
+			"site_key" => $this->privateKey,
 		]);
 		$json = json_decode($res->getBody(), true);
 		if ($res->getStatusCode() == 200) {
@@ -421,16 +534,22 @@ class STAILEUAccounts
 		}
 	}
 
+	/**
+	 * Change user's avatar
+	 * Return true bool if success or Error instance if fail
+	 *
+	 * @param $avatar
+	 * @param $uuid
+	 * @param $CSA
+	 * @return bool|Error
+	 */
 	public function changeAvatar($avatar, $uuid, $CSA)
 	{
-		$res = $this->client->request('POST', $this->api . "/change/avatar", [
-			'form_params' => [
-				"c-sa" => $CSA,
-				"avatar" => $avatar,
-				"uuid" => $uuid,
-				"site_key" => $this->privateKey,
-			],
-			'http_errors' => false,
+		$res = $this->client->request('POST', "/change/avatar", [
+			"c-sa" => $CSA,
+			"avatar" => $avatar,
+			"uuid" => $uuid,
+			"site_key" => $this->privateKey,
 		]);
 		$json = json_decode($res->getBody(), true);
 		if ($res->getStatusCode() == 200) {
@@ -446,7 +565,7 @@ class STAILEUAccounts
 
 	public function isEmailAddressVerified($uuid)
 	{
-		$res = $this->client->request('GET', $this->api . "/verified/email/" . $uuid, ['http_errors' => false]);
+		$res = $this->doRequest('GET', "/verified/email/{$uuid}");
 		$json = json_decode($res->getBody());
 		if ($res->getStatusCode() == 200) {
 			if ($json->success) {
@@ -461,7 +580,7 @@ class STAILEUAccounts
 
 	public function isPhoneNumberVerified($uuid)
 	{
-		$res = $this->client->request('GET', $this->api . "/verified/phone/" . $uuid, ['http_errors' => false]);
+		$res = $this->doRequest('GET', "/verified/phone/{$uuid}");
 		$json = json_decode($res->getBody());
 		if ($res->getStatusCode() == 200) {
 			if ($json->success) {
@@ -476,30 +595,33 @@ class STAILEUAccounts
 
 	public function verifyPhoneNumber($uuid)
 	{
-		$res = $this->client->request('GET', $this->api . "/verify/phone/" . $uuid, ['http_errors' => false]);
+		$res = $this->doRequest('GET', "/verify/phone/{$uuid}");
 
 		return ($res->getStatusCode() == 200);
 	}
 
 	public function verifyEmailAddress($uuid)
 	{
-		$res = $this->client->request('GET', $this->api . "/verify/email/" . $uuid, ['http_errors' => false]);
+		$res = $this->doRequest('GET', "/verify/email/{$uuid}");
 
 		return ($res->getStatusCode() == 200);
 	}
 
+	/**
+	 * Check if csa token is verified and get user's uuid binding
+	 *
+	 * @param $CSA
+	 * @return Error|string
+	 */
 	public function check($CSA)
 	{
-		$res = $this->client->request('POST', $this->api . "/check", [
-			'form_params' => [
-				"c-sa" => $CSA,
-			],
-			'http_errors' => false,
+		$res = $this->doRequest('POST', "/check", [
+			"c-sa" => $CSA
 		]);
 		$json = json_decode($res->getBody(), true);
 		if ($res->getStatusCode() == 200) {
 			if ($json['success']) {
-				return $json['uuid'];
+				return (string)$json['uuid'];
 			} else {
 				return new Error($res->getStatusCode(), $json['error']);
 			}
@@ -510,11 +632,8 @@ class STAILEUAccounts
 
 	public function verifyCSA($CSA)
 	{
-		$res = $this->client->request('POST', $this->api . "/c-sa", [
-			'form_params' => [
-				"c-sa" => $CSA,
-			],
-			'http_errors' => false,
+		$res = $this->doRequest('POST', "/c-sa", [
+			"c-sa" => $CSA,
 		]);
 		$json = json_decode($res->getBody(), true);
 		if ($res->getStatusCode() == 200) {
