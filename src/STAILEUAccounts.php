@@ -141,17 +141,17 @@ class STAILEUAccounts
 
 	public function loginForm($redirection)
 	{
-		return "https://accounts.stail.eu/login?key=" . $this->publicKey . "&redir=" . $redirection;
+		return $this->endpoint . "login?key=" . $this->publicKey . "&redir=" . $redirection;
 	}
 
 	public function registerForm($redirection)
 	{
-		return "https://accounts.stail.eu/register?key=" . $this->publicKey . "&redir=" . $redirection;
+		return $this->endpoint . "register?key=" . $this->publicKey . "&redir=" . $redirection;
 	}
 
 	public function forgotForm($redirection)
 	{
-		return "https://accounts.stail.eu/forgot?key=" . $this->publicKey . "&redir=" . $redirection;
+		return $this->endpoint . "forgot?key=" . $this->publicKey . "&redir=" . $redirection;
 	}
 
 	/**
