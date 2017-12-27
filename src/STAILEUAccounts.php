@@ -18,7 +18,14 @@ class STAILEUAccounts
 	 */
 	private $endpoint = "https://api.stail.eu/";
 
-	public function __construct($privateKey, $publicKey, $cache = false, $customEndpoint = false)
+	/**
+	 * STAIL.EU account endpoint
+	 *
+	 * @var string
+	 */
+	private $endpointAccount = "https://accounts.stail.eu/";
+
+	public function __construct($privateKey, $publicKey, $cache = false, $customEndpoint = false, $customEndpointAccount = false)
 	{
 		if ($cache != false) {
 			if (!($cache instanceof Cache)) {
@@ -29,6 +36,7 @@ class STAILEUAccounts
 		$this->privateKey = $privateKey;
 		$this->publicKey = $publicKey;
 		$this->endpoint = (!$customEndpoint) ? $this->endpoint : $customEndpoint;
+		$this->endpointAccount = (!$customEndpointAccount) ? $this->endpointAccount : $customEndpointAccount;
 		$this->client = new Client();
 	}
 
@@ -141,17 +149,17 @@ class STAILEUAccounts
 
 	public function loginForm($redirection)
 	{
-		return $this->endpoint . "login?key=" . $this->publicKey . "&redir=" . $redirection;
+		return $this->endpointAccount . "login?key=" . $this->publicKey . "&redir=" . $redirection;
 	}
 
 	public function registerForm($redirection)
 	{
-		return $this->endpoint . "register?key=" . $this->publicKey . "&redir=" . $redirection;
+		return $this->endpointAccount . "register?key=" . $this->publicKey . "&redir=" . $redirection;
 	}
 
 	public function forgotForm($redirection)
 	{
-		return $this->endpoint . "forgot?key=" . $this->publicKey . "&redir=" . $redirection;
+		return $this->endpointAccount . "forgot?key=" . $this->publicKey . "&redir=" . $redirection;
 	}
 
 	/**
