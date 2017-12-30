@@ -1,9 +1,26 @@
-# STAIL.EU-Accounts
-The new way to have accounts - STAIL.EU Accounts allows you to manage users with administration file, securely, and for free!
+<p align="center"><img src="https://cdn.stail.eu/accounts/logo-stail-small.png"></p>
 
-[![Latest Stable Version](https://poser.pugx.org/stan-tab-corp/staileu-accounts/v/stable)](https://packagist.org/packages/stan-tab-corp/staileu-accounts) [![Total Downloads](https://poser.pugx.org/stan-tab-corp/staileu-accounts/downloads)](https://packagist.org/packages/stan-tab-corp/staileu-accounts) [![License](https://poser.pugx.org/stan-tab-corp/staileu-accounts/license)](https://packagist.org/packages/stan-tab-corp/staileu-accounts) 
+<p align="center">
+<a href="https://packagist.org/packages/stan-tab-corp/staileu-accounts"><img src="https://poser.pugx.org/stan-tab-corp/staileu-accounts/v/stable" alt="Latest Stable Version"></a>
+<a href="https://packagist.org/packages/stan-tab-corp/staileu-accounts"><img src="https://poser.pugx.org/stan-tab-corp/staileu-accounts/downloads" alt="Total Downloads"></a>
+<a href="https://packagist.org/packages/stan-tab-corp/staileu-accounts"><img src="https://poser.pugx.org/stan-tab-corp/staileu-accounts/license" alt="License"></a>
+<a href="https://discord.gg/hQnY3jP"><img src="https://discordapp.com/api/guilds/365929044442873898/widget.png" alt="Discord Server"></a>
+</p>
 
-# Installation
+# About STAIL.EU Accounts
+STAIL.EU Accounts is an account manager, that allows us to manage user without having to store sensitive data! You have all control other your users. Another main feature is that a user only needs one account to access multiple websites like yours! As we store all data, you don't have to do any administration.
+
+STAIL.EU Accounts is 100% free and it will be forever!
+
+STAIL.EU Accounts is the new way to have accounts!
+
+* Our website: https://stail.eu
+* Our discord server: https://discord.gg/hQnY3jP
+
+
+# Documentation
+
+## Installation
 
 `composer require stan-tab-corp/staileu-accounts`
 
@@ -16,9 +33,9 @@ $stail = new \STAILEUAccounts\STAILEUAccounts("<private key>", "<public key>", f
 
 The parameter in the instance of `\STAILEUAccounts\Cache` can be empty (the path will be ./.stail_cache) or you can give a folder path.
 
-# How to 
+## How to 
 
-## Login an user
+### Login an user
 
 To login an user, you just have to call:
 
@@ -65,11 +82,11 @@ This beautiful function will return you `false` or the user's uuid! Ta-da!
 
 You have login the user, now you can do whatever you want!
 
-### Another way to login an user:
+#### Another way to login an user:
 
 You can use our form to login an user, in the case you will just receive the *c-sa token* and you just have to get the uuid and you're done!
 
-## Register a user
+### Register a user
 In order to register a user call:
 ```php
     $stail->register("username", "password", "email"|null, "phone number"|null, "ip");
@@ -91,7 +108,7 @@ This function will return a c-a token, in order to get the uuid, call
 2. We are making statistics, which are done at the end of each month, with the country of origin and the user's language.
 3. We are also counting how many user get registered with the same ip to check if there is not bot spamming.
 
-## Get the login form URL
+### Get the login form URL
 If your website doesn't have an SSL certificate you have to use our form!
 To get the login form URL please call:
 
@@ -101,7 +118,7 @@ To get the login form URL please call:
 
 * The parameter needs to be the URL the user will be redirected to when he completes the login process.
 
-## Get the register form URL
+### Get the register form URL
 If your website doesn't have an SSL certificate you have to use our form!
 To get the registration form url please call:
 
@@ -111,7 +128,7 @@ To get the registration form url please call:
 
 * The parameter needs to be the URL the user will be redirected to when he complete the registration process.
 
-## Get the password forgot form URL
+### Get the password forgot form URL
 If your website doesn't have an SSL certificate you have to use our form!
 To get the password forgot form url please call:
 
@@ -121,7 +138,7 @@ To get the password forgot form url please call:
 
 * The parameter needs to be the URL the user will be redirected to when he complete the password reset process.
 
-## Get a user's username
+### Get a user's username
 You have the uuid but you want his username? **NO PROBLEM!**
 Just call:
 ```php
@@ -130,7 +147,7 @@ Just call:
 
 * The parameter is the user's uuid
 
-## Get a user's uuid
+### Get a user's uuid
 You have the user's username but you want his uuid?
 Just call:
 ```php
@@ -139,7 +156,7 @@ Just call:
 
 * The parameter is the user's username
 
-## Get a user's email address
+### Get a user's email address
 You have the user's uuid but you want his email address?
 Just call:
 ```php
@@ -148,7 +165,7 @@ Just call:
 
 * The parameter is the user's uuid
 
-## Get a user's avatar
+### Get a user's avatar
 You have the user's uuid but you want his avatar?
 Just call:
 ```php
@@ -159,7 +176,7 @@ Just call:
 
 This function will return you an instance of STAILEUAccounts\Avatar. To get the avatar in base64 call `getBase64()` if you want the URL call `getUrl()`
 
-## Get a user's registration date
+### Get a user's registration date
 You have the user's uuid but you want his registration date?
 Just call:
 ```php
@@ -168,7 +185,7 @@ Just call:
 
 * The parameter is the user's uuid
 
-## Know if a user's email address is verified
+### Know if a user's email address is verified
 I know you will ask me to check if an email address is verified correct?
 So... simply call:
 
@@ -179,7 +196,7 @@ So... simply call:
 * The parameter is the user's uuid
 * The function will return you a boolean
 
-## Know if a user's phone number is verified
+### Know if a user's phone number is verified
 Again? But the phone number correct?
 So...
 
@@ -190,7 +207,7 @@ So...
 * The parameter is the user's uuid
 * The function will return you a boolean
 
-## Verify a user's email address
+### Verify a user's email address
 Ok ok, now you know that the user didn't verify his email address, so you want to resend a demand
 
 ```php
@@ -199,7 +216,7 @@ Ok ok, now you know that the user didn't verify his email address, so you want t
 
 * The parameter is the user's uuid
 
-## Verify a user's phone number
+### Verify a user's phone number
 Ok, the same thing with the phone number?
 
 ```php
@@ -208,7 +225,7 @@ Ok, the same thing with the phone number?
 
 * The parameter is the user's uuid
 
-## Logout a user
+### Logout a user
 Now we will learn how to log out a user. This will result in a deletion of the c-sa token.
 
 ```php
@@ -217,7 +234,17 @@ Now we will learn how to log out a user. This will result in a deletion of the c
 
 * The parameter is the c-sa token
 
-## Change a user's username
+### All in one!
+There is one more function, and this one is pretty cool!
+You can gather all the user data with only one request!
+
+```php
+    $stail->getUser("uuid"):
+```
+
+* The parameter is the user's uuid
+
+### Change a user's username
 Now we will begin in a very special section, we will edit the user's profile. Note that if an app is modifying a user profile without the account owner authorization, the app will be deleted and the website banned!
 
 In order to change the username call:
@@ -230,7 +257,7 @@ In order to change the username call:
 * The second parameter is the user's uuid
 * The third parameter is the c-sa token
 
-## Change a user's password
+### Change a user's password
 In order to change the password call:
 
 ```php
@@ -241,7 +268,7 @@ In order to change the password call:
 * The second parameter is the user's uuid
 * The third parameter is the c-sa token
 
-## Change a user's email address
+### Change a user's email address
 In order to change the email address call:
 
 ```php
@@ -252,7 +279,7 @@ In order to change the email address call:
 * The second parameter is the user's uuid
 * The third parameter is the c-sa token
 
-## Change a user's phone number
+### Change a user's phone number
 In order to change the phone number call:
 
 ```php
@@ -263,7 +290,7 @@ In order to change the phone number call:
 * The second parameter is the user's uuid
 * The third parameter is the c-sa token
 
-## Change a user's avatar
+### Change a user's avatar
 In order to change the avatar call:
 
 ```php

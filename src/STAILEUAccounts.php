@@ -16,7 +16,7 @@ class STAILEUAccounts
 	 *
 	 * @var string
 	 */
-	private $endpoint = "https://api.stail.eu/";
+	private $endpoint = "https://api.stail.eu";
 
 	/**
 	 * STAIL.EU account endpoint
