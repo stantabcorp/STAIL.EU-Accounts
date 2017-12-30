@@ -85,7 +85,7 @@ class STAILEUAccounts
 	{
 		$res = $this->doRequest('POST', "/login", [
 			"username" => $username,
-			"password" => md5($password),
+			"password" => $password,
 			"site_key" => $this->privateKey,
 		]);
 		$json = json_decode($res->getBody(), true);
@@ -115,7 +115,7 @@ class STAILEUAccounts
 	{
 		$d = [
 			"username" => $username,
-			"password" => md5($password),
+			"password" => $password,
 			"ip" => $ip,
 			"site_key" => $this->privateKey,
 		];
@@ -477,7 +477,7 @@ class STAILEUAccounts
 	{
 		$res = $this->doRequest('POST', "/change/password", [
 			"c-sa" => $CSA,
-			"password" => md5($password),
+			"password" => $password,
 			"uuid" => $uuid,
 			"site_key" => $this->privateKey,
 		]);
