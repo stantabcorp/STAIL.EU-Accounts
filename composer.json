@@ -8,6 +8,10 @@
         {
             "name": "Thibault Junin",
             "email": "spamfree@thibaultjunin.fr"
+        },
+        {
+            "name": "Le_Futuriste",
+            "email": "contact@lefuturiste.fr"
         }
     ],
     "minimum-stability": "stable",
