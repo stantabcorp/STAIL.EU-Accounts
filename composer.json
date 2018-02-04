@@ -3,7 +3,7 @@
     "description": "The new way to have accounts",
     "type": "library",
     "homepage": "https://stail.eu",
-    "license": "proprietary",
+    "license": "https://stantabcorp.com/license",
     "authors": [
         {
             "name": "Thibault Junin",
