@@ -353,6 +353,52 @@ class STAILEUAccounts
 	}
 
 	/**
+	 * Get authorized email from user's uuid
+	 * Return email string if success or Error instance if fail
+	 *
+	 * @param $uuid
+	 * @return Error|string
+	 */
+	public function getAuthorizedEmail($uuid)
+	{
+		if ($this->cache != false) {
+			if ($this->cache->isCached("authorized_email", $uuid)) {
+				return $this->cache->getCache("authorized_email", $uuid);
+			} else {
+				$res = $this->doRequest('POST', "/email/{$uuid}", [
+					"key" => $this->privateKey,
+				]);
+				$json = json_decode($res->getBody());
+				if ($res->getStatusCode() == 200) {
+					if ($json->success) {
+						$this->cache->setCache("email", $uuid, ($json->email == NULL) ? "null" : $json->email);
+
+						return $json->email;
+					} else {
+						return new Error($res->getStatusCode(), $json->error);
+					}
+				} else {
+					return new Error($res->getStatusCode(), $json->error);
+				}
+			}
+		} else {
+			$res = $this->doRequest('POST', "/email/{$uuid}", [
+				"key" => $this->privateKey,
+			]);
+			$json = json_decode($res->getBody());
+			if ($res->getStatusCode() == 200) {
+				if ($json->success) {
+					return $json->email;
+				} else {
+					return new Error($res->getStatusCode(), $json->error);
+				}
+			} else {
+				return new Error($res->getStatusCode(), $json->error);
+			}
+		}
+	}
+
+	/**
 	 * Get email from user's uuid
 	 * Return date time (YYYY-MM-DD HH:ii:ss) string if success or Error instance if fail
 	 *
