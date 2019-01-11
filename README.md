@@ -7,6 +7,9 @@
 <a href="https://discord.gg/hQnY3jP"><img src="https://discordapp.com/api/guilds/365929044442873898/widget.png" alt="Discord Server"></a>
 </p>
 
+# Repository has moved!
+# Please see: https://github.com/staileu/php-sdk
+
 # About STAIL.EU Accounts
 STAIL.EU Accounts is an account manager, that allows us to manage user without having to store sensitive data! You have all control other your users. Another main feature is that a user only needs one account to access multiple websites like yours! As we store all data, you don't have to do any administration.
 
